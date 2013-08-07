@@ -1,5 +1,4 @@
 syntax on
-color evening
 filetype indent on
 filetype plugin on
 filetype plugin indent on
@@ -9,7 +8,7 @@ set nobackup
 set nowb
 set noswapfile
 set showmatch
-set fileencodings=utf-8,gbk,gb2312,gb18030
+set fileencodings=utf-8,gb18030
 set encoding=utf-8
 set number
 set ruler
