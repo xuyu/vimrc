@@ -1,9 +1,27 @@
-syntax on
-filetype indent on
-filetype plugin on
+let g:go_fmt_command = "gofmt"
+let g:go_highlight_functions = 1
+let g:go_highlight_methods = 1
+let g:go_highlight_structs = 1
+
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+Plugin 'gmarik/Vundle.vim'
+Plugin 'fatih/vim-go'
+if has("lua")
+	Plugin 'Shougo/neocomplete.vim'
+endif
+Plugin 'majutsushi/tagbar'
+call vundle#end()
 filetype plugin indent on
 
+filetype on
+filetype plugin on
+filetype plugin indent on
+syntax on
 
+set guifont=Menlo:h13
 set autoindent
 set nobackup
 set nowb
@@ -27,28 +45,34 @@ set hlsearch
 set autoread
 set autowrite
 set hidden
+set lazyredraw
 set scs
 set lbr
 set laststatus=2
-set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
+
+function! CurFile()
+	let curfile = substitute(expand('%:p'), getcwd(), ".", "g")
+	let curfile = substitute(curfile, "^\./", "", "g")
+	let curfile = substitute(curfile, '/Users/xuyu', "~", "g")
+	return curfile
+endfunction
 function! CurDir()
-	let curdir = substitute(getcwd(), '/Users/amir/', "~/", "g")
+	let curdir = substitute(getcwd(), '/Users/xuyu', "~", "g")
 	return curdir
 endfunction
 function! HasPaste()
 	if &paste
-		return 'PASTE MODE  '
+		return 'PASTE'
 	else
 		return ''
 	endif
 endfunction
-set statusline+=\ \ [
-set statusline+=%{strlen(&ft)?&ft:'none'}, " filetype
-set statusline+=%{&fileformat}] " file format
-
-set statusline+=%= " right align
-set statusline+=0x%-8B " current char
-set statusline+=%-14.(%l,%c%V%)\ %<%P " offset
+function! FileType()
+	return toupper(strlen(&ft) ? &ft : 'none')
+endfunction
+set statusline=\ %m%{HasPaste()}\ %{CurFile()}\ \ %{CurDir()}
+set statusline+=%=%-8{FileType()}\ %-6{toupper(&fileformat)}
+set statusline+=\ %-16.(%l,%c\ 0x%-4B%)%<%P\ \  " offset
 
 "Delete trailing white space, useful for Python ;)
 func! DeleteTrailingWS()
@@ -57,6 +81,12 @@ func! DeleteTrailingWS()
 	exe "normal `z"
 endfunc
 autocmd BufWrite *.py :call DeleteTrailingWS()
+autocmd BufRead * silent! %s/[\r \t]\+$//
+" Return to last edit position when opening files (You want this!)
+autocmd BufReadPost *
+	\ if line("'\"") > 0 && line("'\"") <= line("$") |
+	\   exe "normal! g`\"" |
+	\ endif
 
 imap <F5> <ESC>:set ff=unix<ESC>:w<ESC>
 map <F5> <ESC>:set ff=unix<ESC>:w<ESC>
@@ -65,39 +95,32 @@ map <F9> <ESC>:let @/=''<ESC>
 map <F12> <ESC>:tabnew<ESC>
 imap <F12> <ESC>:tabnew<ESC>
 nmap <Tab> <ESC>:tabnext<ESC>
+nmap <F8> :TagbarToggle<CR>
 
-autocmd BufRead * silent! %s/[\r \t]\+$//
-
+colorscheme molokai
+let g:molokai_original = 1
+let g:rehash256 = 1
+autocmd FileType go let g:neocomplete#enable_at_startup = 1
 autocmd FileType c,cpp setlocal cinoptions=:0,g0,(0,w1 shiftwidth=4 tabstop=4
 autocmd FileType html setlocal shiftwidth=2 tabstop=2 autoindent
 autocmd FileType python setlocal expandtab shiftwidth=4 tabstop=4 softtabstop=4
 autocmd FileType javascript setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab
 
-""""""""""""""""""""""""""""""
-" => Python section
-""""""""""""""""""""""""""""""
+" Python section
 let python_highlight_all = 1
 autocmd FileType python syn keyword pythonDecorator True None False self
-
 autocmd FileType python inoremap <buffer> $r return
 autocmd FileType python inoremap <buffer> $i import
 autocmd FileType python inoremap <buffer> $p print
-autocmd FileType python inoremap <buffer> $f #--- PH----------------------------------------------<esc>FP2xi
 autocmd FileType python map <buffer> <leader>1 /class
 autocmd FileType python map <buffer> <leader>2 /def
 autocmd FileType python map <buffer> <leader>C ?class
 autocmd FileType python map <buffer> <leader>D ?def
 
-
-""""""""""""""""""""""""""""""
-" => JavaScript section
-"""""""""""""""""""""""""""""""
+" JavaScript section
 autocmd FileType javascript setl fen
 autocmd FileType javascript setl nocindent
-
 autocmd FileType javascript imap <c-t> AJS.log();<esc>hi
 autocmd FileType javascript imap <c-a> alert();<esc>hi
-
 autocmd FileType javascript inoremap <buffer> $r return
-autocmd FileType javascript inoremap <buffer> $f //--- PH----------------------------------------------<esc>FP2xi
